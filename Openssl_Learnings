@@ -1,3 +1,7 @@
+Refer to link:
+
+https://scriptcrunch.com/create-ca-tls-ssl-certificates-keys/
+
 This guide explains the process of creating CA keys and certificates and use them to generate SSL/TLS certificates & keys using SSL
 utilities like openssl and cfssl.
 
