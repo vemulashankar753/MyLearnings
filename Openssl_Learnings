@@ -1,0 +1,82 @@
+This guide explains the process of creating CA keys and certificates and use them to generate SSL/TLS certificates & keys using SSL
+utilities like openssl and cfssl.
+
+PKI -- Public Key Infra structure
+CA -- Certificate Authority
+CSR -- Certificate Signing Request
+SSL -- Secure Socket Layer
+TLS -- Transport Layer Security
+
+Certificate Creation WorkFlow:
+
+CA Key and Certificate Creation:
+
+1) Generate CA Private Key file using Openssl
+  -> openssl genrsa -out ca.key 2048
+    
+2) Crate CA Root Certificate using CA Private Key.(Generate CA x509 certificate file using the CA key. 
+You can define the validity of certificate in days. Here we have mentioned 1825 days)
+
+ -> openssl req -x509 -new -nodes  -key ca.key -sha256 -days 1825 -out ca.crt
+
+
+Server Certificate Creation:
+
+1) Generate a Server Private Key using utility Openssl.
+   openssl genrsa -out server.key 2048
+   
+2) Create a CSR Using the Server Private Key
+3 Generate Server certificate using the CA Key, CA Cert and Server CSR.
+
+----------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------
+Step 2: Create a configuration file named csr.conf for generating the Certificate Signing Request (CSR) 
+as shown below. Replace the values as per your needs.
+
+cat > csr.conf <<EOF
+[ req ]
+default_bits = 2048
+prompt = no
+default_md = sha256
+req_extensions = req_ext
+distinguished_name = dn
+ 
+[ dn ]
+C = US
+ST = California
+L = San Fransisco
+O = Scriptcrunch
+OU = Scriptcrunch Dev
+CN = scriptcrunch.com
+ 
+[ req_ext ]
+subjectAltName = @alt_names
+ 
+[ alt_names ]
+DNS.1 = scriptcrunch
+DNS.2 = scriptcrunch.com
+IP.1 = 10.34.12.5
+IP.2 = 10.34.12.5
+ 
+[ v3_ext ]
+authorityKeyIdentifier=keyid,issuer:always
+basicConstraints=CA:FALSE
+keyUsage=keyEncipherment,dataEncipherment
+extendedKeyUsage=serverAuth,clientAuth
+subjectAltName=@alt_names
+EOF
+
+
+ -> openssl req -new -key server.key -out server.csr -config csr.conf
+ 
+ 3) Generate the server SSL certificate using ca.key, ca.crt and server.csr
+ 
+ openssl x509 -req -in server.csr -CA ca.crt -CAkey ca.key \
+-CAcreateserial -out server.crt -days 10000 \
+-extensions v3_ext -extfile csr.conf
+ 
+ 
+
+
+
+
